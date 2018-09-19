@@ -19,7 +19,10 @@ class ActiveCover:
         self.alpha = alpha
         self.beta = beta
         self.xi = xi
+
+        # Epoch base and threshold
         self.tau0 = 3
+        self.tau_m = 0
 
         # Sampling distribution for picking new data points 
         self.P_m = None
@@ -47,9 +50,9 @@ class ActiveCover:
 
         self._set_epsilon_and_tau()
 
-    def get_model(self):
+    def get_parameters(self):
 
-        return self.mt.get_model()
+        return self.mt.get_parameters()
 
     def get_label(self, x):
 
@@ -102,6 +105,7 @@ class ActiveCover:
         threshold = self.delta * self._get_big_delta(self.h_min)
 
     def _update_P_m(self):
+        # TODO: decided what logic from this problem and solver to separate into another class
         pass
 
     def _get_big_delta(self):
@@ -113,6 +117,7 @@ class ActiveCover:
         return self.cs[0] * sqrt_term + self.cs[1] * log_term
 
     def _is_in_disagreement_region(self, x):
+        # TODO: look in App. F of Online Importance Weight Aware Updates to learn about single-constraint optimization with unconstrained oracle to check for disagreement region membership
         pass 
 
     def _set_epsilon_and_tau(self):
