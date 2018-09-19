@@ -3,16 +3,14 @@ import numpy as np
 class ActiveCover:
 
     def __init__(
-        get_error,
-        get_argmin,
+        model_trainer,
         c1, c2, c3, 
         delta, 
         gamma, 
         alpha, beta, xi):
 
         # Subroutines for specific model
-        self.get_error = get_error
-        self.get_argmin = get_argmin
+        self.mt = model_trainer
 
         # Non-intuitive parameters
         self.cs = (c1, c2, c3)
@@ -49,19 +47,43 @@ class ActiveCover:
 
         self._set_epsilon_and_tau()
 
-    def get_label(self, X):
+    def get_model(self):
 
-        self.t += 1
+        return self.mt.get_model()
 
-        if self.t == self.tau_m + 1:
-            self._do_epoch_update()
+    def get_label(self, x):
 
-        in_dr = self._is_in_disagreement_region(X)
+        label = None
 
-        if in_dr:
+        if self.waiting:
+            print('You must provide label for most recent example.')
+        else:
+            self.t += 1
+            new_sample = None
+
+            if self.t == self.tau_m + 1:
+                self._do_epoch_update()
+
+            in_dr = self._is_in_disagreement_region(x)
+
+            if in_dr:
+                p = self.P_m(x)
+                query = sample_somthing(p) == 1
+                new_sample = (x, None, 1 / p) if query else (x, 1, 0)
+                self.waiting = query
+            else:
+                label = self.mt.get_prediction(self.h_min, x)
+                new_sample = (X, label, 1)
+
+            self.S.append(new_sample)
+
+        return label
 
     def set_label(self, y):
-        pass
+
+        (x, _, p_inv) = self.S[-1]
+        self.S[-1] = (x, y, p_inv)
+        self.waiting = False 
 
     def _do_epoch_update(self):
 
@@ -72,21 +94,25 @@ class ActiveCover:
         self.m += 1
 
     def _update_h_min(self):
-        pass
+
+        self.h_min = self.mt.get_h_min(self.Z)
 
     def _update_A_m(self):
 
-        big_delta_m = self._get_big_delta(self.h_min)
+        threshold = self.delta * self._get_big_delta(self.h_min)
 
-    def _get_big_delta(self, h):
+    def _update_P_m(self):
+        pass
 
-        error = self.get_error(h, self.Z)
+    def _get_big_delta(self):
+
+        error = self.mt.get_error(self.h_min, self.Z)
         sqrt_term = np.sqrt(self.epsilon_m * error)
         log_term = self.epsilon_m * np.log(self.tau_m)
 
         return self.cs[0] * sqrt_term + self.cs[1] * log_term
 
-    def _is_in_disagreement_region(self, X):
+    def _is_in_disagreement_region(self, x):
         pass 
 
     def _set_epsilon_and_tau(self):
