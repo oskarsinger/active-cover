@@ -2,7 +2,7 @@ import numpy as np
 
 class ActiveCover:
 
-    def __init__(
+    def __init__(self,
         model_trainer,
         c1, c2, c3, 
         delta, 
