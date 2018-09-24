@@ -75,7 +75,7 @@ class ActiveCover:
                 new_sample = (x, None, 1 / p) if query else (x, 1, 0)
                 self.waiting = query
             else:
-                label = self.mt.get_prediction(self.h_min, x)
+                label = self.mt.get_prediction(self.h_erm, x)
                 new_sample = (X, label, 1)
 
             self.S.append(new_sample)
@@ -90,19 +90,15 @@ class ActiveCover:
 
     def _do_epoch_update(self):
 
-        self._update_h_min()
-        self._update_A_m()
+        self._update_h_erm()
         self._update_P_m()
 
         self.m += 1
 
-    def _update_h_min(self):
+    def _update_h_erm(self):
 
-        self.h_min = self.mt.get_h_min(self.Z)
-
-    def _update_A_m(self):
-
-        threshold = self.delta * self._get_big_delta(self.h_min)
+        self.h_erm = self.mt.get_h_erm(self.Z)
+        self.big_delta = self._get_big_delta(self.h_erm)
 
     def _update_P_m(self):
         # TODO: decided what logic from this problem and solver to separate into another class
@@ -110,7 +106,7 @@ class ActiveCover:
 
     def _get_big_delta(self):
 
-        error = self.mt.get_error(self.h_min, self.Z)
+        error = self.mt.get_error(self.h_erm, self.Z)
         sqrt_term = np.sqrt(self.epsilon_m * error)
         log_term = self.epsilon_m * np.log(self.tau_m)
 
@@ -118,6 +114,7 @@ class ActiveCover:
 
     def _is_in_disagreement_region(self, x):
         # TODO: look in App. F of Online Importance Weight Aware Updates to learn about single-constraint optimization with unconstrained oracle to check for disagreement region membership
+        threshold = self.delta * self.big_delta
         pass 
 
     def _set_epsilon_and_tau(self):

@@ -37,13 +37,11 @@ class SamplerComputer:
         self._set_I()
 
         self.dual_vars = None
+        self.P = None
 
-    def get_sampler(self):
+    def get_P(self):
 
-        # TODO: make sampler from dual vars
-        sampler = None
-
-        return sampler
+        return self.P
 
     def compute_sampler(self):
         
@@ -75,7 +73,7 @@ class SamplerComputer:
                 dual_vars[h_bar] = update
 
         self.dual_vars = dual_vars
-
+        self.P = P_lambda
 
     def _is_converged(self, P_lambda, h, bound):
 
