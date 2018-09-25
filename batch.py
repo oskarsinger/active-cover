@@ -71,7 +71,7 @@ class ActiveCover:
 
             if in_dr:
                 p = self.P_m(x)
-                query = sample_somthing(p) == 1
+                query = np.random.uniform() < p
                 new_sample = (x, None, 1 / p) if query else (x, 1, 0)
                 self.waiting = query
             else:
