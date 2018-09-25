@@ -97,16 +97,36 @@ class ActiveCover:
 
     def _update_h_erm(self):
 
-        self.h_erm = self.mt.get_h_erm(self.Z)
+        self.h_erm = self.mt.get_h_erm(self.Z_m)
         self.big_delta = self._get_big_delta(self.h_erm)
 
     def _update_P_m(self):
-        # TODO: decided what logic from this problem and solver to separate into another class
-        pass
+
+        new_data = None # TODO: figure out best way to initialize this
+
+        dc = DistributionComputer(
+            model_trainer, # TODO: set up model trainers
+            new_data,
+            self._is_in_disagreement_region,
+            tolerance, # TODO: what is this?
+            self.m,
+            self.cs[2],
+            self.tau_m,
+            self.alpha,
+            self.beta,
+            self.gamma,
+            self.epsilon_m,
+            self.xi,
+            self.big_delta,
+            self.h_erm)
+
+        dc.compute_P()
+
+        self.P_m = dc.get_P()
 
     def _get_big_delta(self):
 
-        error = self.mt.get_error(self.h_erm, self.Z)
+        error = self.mt.get_error(self.h_erm, self.Z_m)
         sqrt_term = np.sqrt(self.epsilon_m * error)
         log_term = self.epsilon_m * np.log(self.tau_m)
 

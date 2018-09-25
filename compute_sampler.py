@@ -1,6 +1,6 @@
 import numpy as np
 
-class SamplerComputer:
+class DistributionComputer:
 
     def __init__(self, 
         model_trainer,
@@ -19,8 +19,14 @@ class SamplerComputer:
         h):
 
         self.mt = model_trainer
-        self.data = data
-        self.in_dr = {x : in_d_region(x) for x in self.data}
+        self.data = {i : data for (i, data) in enumerate(data)}
+        self.dr = {True: [], False: []}
+
+        for (i, x) in self.data.items():
+            in_dr = is_in_disagreement_region(x)
+            self.dr[in_dr].append(i)
+
+        self.dr = {x : in_d_region(x) for x in self.data}
         self.tolerance = tolerance
         self.m = m
         self.c3 = c3
@@ -38,17 +44,19 @@ class SamplerComputer:
 
         self.dual_vars = None
         self.P = None
+        self.max_rounds = 1000
 
     def get_P(self):
 
         return self.P
 
-    def compute_sampler(self):
+    def compute_P(self):
         
         # TODO: figure out dim of duals or better way to index duals
         dual_vars = {}
+        i = 0
 
-        while True:
+        while i < self.max_rounds:
             
             (P_lambda, q_lambda) = self._get_P_and_q_lambda(dual_vars)
             h_bar = self._get_h_bar(P_lambda)
@@ -71,6 +79,8 @@ class SamplerComputer:
                 dual_vars[h_bar] += update
             else:
                 dual_vars[h_bar] = update
+
+            i += 1
 
         self.dual_vars = dual_vars
         self.P = P_lambda
