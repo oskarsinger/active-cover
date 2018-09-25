@@ -94,6 +94,7 @@ class ActiveCover:
         self._update_P_m()
 
         self.m += 1
+        self.S = []
 
     def _update_h_erm(self):
 
@@ -102,13 +103,13 @@ class ActiveCover:
 
     def _update_P_m(self):
 
-        new_data = None # TODO: figure out best way to initialize this
+        samples = [x for (x, _, _) in self.S]
 
         dc = DistributionComputer(
             model_trainer, # TODO: set up model trainers
-            new_data,
+            samples,
             self._is_in_disagreement_region,
-            tolerance, # TODO: what is this?
+            tolerance, # TODO: what is a good way to pick this?
             self.m,
             self.cs[2],
             self.tau_m,
@@ -135,7 +136,6 @@ class ActiveCover:
     def _is_in_disagreement_region(self, x):
         # TODO: look in App. F of Online Importance Weight Aware Updates to learn about single-constraint optimization with unconstrained oracle to check for disagreement region membership
         threshold = self.delta * self.big_delta
-        pass 
 
     def _set_epsilon_and_tau(self):
 

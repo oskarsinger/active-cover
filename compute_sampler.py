@@ -5,7 +5,7 @@ class DistributionComputer:
     def __init__(self, 
         model_trainer,
         data,
-        in_d_region,
+        is_in_disagreement_region,
         tolerance,
         m,
         c3,
@@ -19,14 +19,8 @@ class DistributionComputer:
         h):
 
         self.mt = model_trainer
-        self.data = {i : data for (i, data) in enumerate(data)}
-        self.dr = {True: [], False: []}
-
-        for (i, x) in self.data.items():
-            in_dr = is_in_disagreement_region(x)
-            self.dr[in_dr].append(i)
-
-        self.dr = {x : in_d_region(x) for x in self.data}
+        self.data = data
+        self.samples = {i : x for (x, _, _) in self.data}
         self.tolerance = tolerance
         self.m = m
         self.c3 = c3
@@ -39,7 +33,8 @@ class DistributionComputer:
         self.big_delta = big_delta,
         self.h_erm = h
 
-        Self._set_P_min() 
+        self._set_dr()
+        self._set_P_min() 
         self._set_I()
 
         self.dual_vars = None
@@ -52,7 +47,7 @@ class DistributionComputer:
 
     def compute_P(self):
         
-        # TODO: figure out dim of duals or better way to index duals
+        # TODO: figure out better way to index duals
         dual_vars = {}
         i = 0
 
@@ -87,21 +82,21 @@ class DistributionComputer:
 
     def _is_converged(self, P_lambda, h, bound):
 
-        func = lambda x: self.I(x, h) / P_lambda(x)
+        func = lambda d: self.I(d, h) / P_lambda(d)
         expectation = self._get_expectation(func)
 
         return expectation - bound <= self.tolerance
 
     def _get_expectation(self, get_val):
 
-        vals = [get_val(x) for x in self.data]
+        vals = [get_val(x) for x in self.samples.values()]
 
         return sum(vals) / len(vals)
 
     def _get_dual_update(self, P_lambda, q_lambda, h_bar, bound_bar):
 
-        numer_func = lambda x: self.I(x, h_bar) / P_lambda(x)
-        denom_func = lambda x: self.I(x, h_bar) / q_lambda(x)**3
+        numer_func = lambda d: self.I(d, h_bar) / P_lambda(d)
+        denom_func = lambda d: self.I(d, h_bar) / q_lambda(d)**3
         numer_ex = self._get_expectation(numer_func)
         denom_ex = self._get_expectation(denom_func)
 
@@ -129,22 +124,30 @@ class DistributionComputer:
 
     def _get_P_and_q_lambda(self, dual_vars):
 
-        def q_lambda(x):
+        def q_lambda(d):
+            pass
 
-
-
-        def P_lambda(x):
+        def P_lambda(d):
 
             p = 0
-            in_dr = self.in_dr[x]
 
-            if in_dr:
-                ql = q_lambda(x)
+            if self._in_dr(d):
+                ql = q_lambda(d[1])
                 p = ql / (ql + 1)
 
             return p
 
         return (P_lambda, q_lambda)
+
+    def _set_dr(self):
+
+        self.dr = []
+
+        for (i, x) in self.samples.items():
+            if in_is_in_disagreement_region(x):
+                self.dr.append(i)
+
+        self._in_dr = lambda d: d[0] in self.dr
 
     def _set_P_min(self):
 
@@ -154,20 +157,17 @@ class DistributionComputer:
         option1 = self.c3 / denom
 
         self.error_erm = error_erm
-        self.P_min min([option1, 0.5])
+        self.P_min = min([option1, 0.5])
 
     def _set_I(self):
 
-        def I(x, h):
+        def I(d, h):
             
+            x = d[1]
             input_pred = self.mt.get_prediction(x, h)
             erm_pred = self.mt.get_prediction(x, self.h_erm)
             preds_different = not erm_pred == input_pred
-            in_dr = False
 
-            if preds_different:
-                in_dr = self.in_dr[x]
-
-            return in_dr and preds_different
+            return self._in_dr(d) and preds_different
 
         self.I = I
