@@ -1,11 +1,13 @@
 import numpy as np
 
+from .hypotheses import BinaryHypothesisDualVariableContainer as BHDVC
+
 class DistributionComputer:
 
     def __init__(self, 
         model_trainer,
         data,
-        is_in_disagreement_region,
+        disagreement_region,
         tolerance,
         m,
         c3,
@@ -20,7 +22,7 @@ class DistributionComputer:
 
         self.mt = model_trainer
         self.data = data
-        self.samples = {i : x for (x, _, _) in self.data}
+        self.dr = disagreement_region
         self.tolerance = tolerance
         self.m = m
         self.c3 = c3
@@ -33,7 +35,10 @@ class DistributionComputer:
         self.big_delta = big_delta,
         self.h_erm = h
 
-        self._set_dr()
+        self.samples = {i : x for (x, _, _) in self.data}
+        self.erm_preds = [self.mt.get_prediction(x, self.h_erm)
+                          for x in self.samples]
+
         self._set_P_min() 
         self._set_I()
 
@@ -48,7 +53,7 @@ class DistributionComputer:
     def compute_P(self):
         
         # TODO: figure out better way to index duals
-        dual_vars = {}
+        dual_vars = BHDVC(self.data, self.mt.get_prediction)
         i = 0
 
         while i < self.max_rounds:
@@ -70,11 +75,7 @@ class DistributionComputer:
                 h_bar,
                 bound_bar)
 
-            if h_bar in dual_vars:
-                dual_vars[h_bar] += update
-            else:
-                dual_vars[h_bar] = update
-
+            dual_vars.update(h_bar, update)
             i += 1
 
         self.dual_vars = dual_vars
@@ -125,7 +126,17 @@ class DistributionComputer:
     def _get_P_and_q_lambda(self, dual_vars):
 
         def q_lambda(d):
-            pass
+
+            (i, x) = d
+            q_val = 0
+
+            if self._in_dr(d):
+                erm_pred = self.erm_preds[i]
+                opposite = 1 - erm_pred
+                dv_sum = dual_vars.get_sum(i, opposite)
+                q_val = np.sqrt(self.mu**2 + dv_sum)
+
+            return q_val
 
         def P_lambda(d):
 
@@ -139,15 +150,9 @@ class DistributionComputer:
 
         return (P_lambda, q_lambda)
 
-    def _set_dr(self):
+    def _in_dr(self, d):
 
-        self.dr = []
-
-        for (i, x) in self.samples.items():
-            if in_is_in_disagreement_region(x):
-                self.dr.append(i)
-
-        self._in_dr = lambda d: d[0] in self.dr
+        return d[0] in self.dr
 
     def _set_P_min(self):
 

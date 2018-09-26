@@ -48,6 +48,9 @@ class ActiveCover:
         # Current epoch Number
         self.m = 0
 
+        # Current disagreement region membership
+        self.dr = {}
+
         self._set_epsilon_and_tau()
 
     def get_parameters(self):
