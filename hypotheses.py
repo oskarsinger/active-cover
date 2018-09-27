@@ -25,5 +25,6 @@ class BinaryHypothesisDualVariableContainer:
 
     def get_sum(self, index, value):
 
-        # TODO: get dv value of all hypothesis with value at index
-        pass
+        dvs = self.s_tree.find_all(index, index+1, [value])
+
+        return sum(dvs)
