@@ -1,6 +1,7 @@
 import numpy as np
 
 from .hypotheses import BinaryHypothesisDualVariableContainer as BHDVC
+from fitterhappier.zeroorder import TwoPointBanditOptimizer as TPBO
 
 class DistributionComputer:
 
@@ -52,7 +53,6 @@ class DistributionComputer:
 
     def compute_P(self):
         
-        # TODO: figure out better way to index duals
         dual_vars = BHDVC(self.data, self.mt.get_prediction)
         i = 0
 
@@ -83,7 +83,7 @@ class DistributionComputer:
 
     def _is_converged(self, P_lambda, h, bound):
 
-        func = lambda d: self.I(d, h) / P_lambda(d)
+        func = lambda d: self.weighted_I(d, h)
         expectation = self._get_expectation(func)
 
         return expectation - bound <= self.tolerance
@@ -96,15 +96,30 @@ class DistributionComputer:
 
     def _get_dual_update(self, P_lambda, q_lambda, h_bar, bound_bar):
 
-        numer_func = lambda d: self.I(d, h_bar) / P_lambda(d)
+        numer_func = lambda d: self.weighted_I(d, h_bar)
         denom_func = lambda d: self.I(d, h_bar) / q_lambda(d)**3
         numer_ex = self._get_expectation(numer_func)
         denom_ex = self._get_expectation(denom_func)
 
         return 2 * (numer_ex - bound) / denom_ex
 
-    def _get_h_bar(self):
-        pass
+    def _get_h_bar(self, P_lambda):
+
+        def get_objective(h):
+
+            func = lambda d: self.weighted_I(d, h)
+            exp = self._get_expectation(func)
+            bound = self._get_bound(h)
+
+            return - (exp - bound)
+
+        tpbo = TPBO(
+            get_objective,
+            self.mt.get_parameter_shape())
+
+        tpbo.run()
+
+        return tpbo.get_parameters()
 
     def _get_bound(self, h):
 
@@ -164,7 +179,7 @@ class DistributionComputer:
         self.error_erm = error_erm
         self.P_min = min([option1, 0.5])
 
-    def _set_I(self):
+    def _set_Is(self):
 
         def I(d, h):
             
@@ -175,4 +190,15 @@ class DistributionComputer:
 
             return self._in_dr(d) and preds_different
 
+        def weighted_I(d, h, P_lambda):
+
+            p = 0
+
+            if self.I(d, h):
+                p = P_lambda(d)
+
+            return p
+
         self.I = I
+        self.weighted_I = weighted_I
+
