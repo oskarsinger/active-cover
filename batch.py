@@ -2,8 +2,10 @@ import numpy as np
 
 class ActiveCover:
 
+    # TODO: put nice defaults here
     def __init__(self,
         model_trainer,
+        tolerance,
         c1, c2, c3, 
         delta, 
         gamma, 
@@ -13,6 +15,7 @@ class ActiveCover:
         self.mt = model_trainer
 
         # Non-intuitive parameters
+        self.tolerance = tolerance
         self.cs = (c1, c2, c3)
         self.delta = delta
         self.gamma = gamma
@@ -109,10 +112,10 @@ class ActiveCover:
         samples = [x for (x, _, _) in self.S]
 
         dc = DistributionComputer(
-            model_trainer, # TODO: set up model trainers
+            model_trainer,
             samples,
             self._is_in_disagreement_region,
-            tolerance, # TODO: what is a good way to pick this?
+            self.tolerance,
             self.m,
             self.cs[2],
             self.tau_m,

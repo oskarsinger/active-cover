@@ -105,6 +105,9 @@ class DistributionComputer:
 
     def _get_h_bar(self, P_lambda):
 
+        # TODO: try to come up with a differentiable variation on this
+        # First try: 1 - abs(y_erm - y_bar)
+        # Only matters for ERMs that use first-order methods
         def get_objective(h):
 
             func = lambda d: self.weighted_I(d, h)
