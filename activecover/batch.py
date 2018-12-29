@@ -1,6 +1,6 @@
 import numpy as np
 
-class ActiveCover:
+class BatchActiveCover:
 
     # TODO: put nice defaults here
     def __init__(self,
@@ -98,13 +98,14 @@ class ActiveCover:
 
         self._update_h_erm()
         self._update_P_m()
+        self.Z_m.extend(self.S)
 
         self.m += 1
         self.S = []
 
     def _update_h_erm(self):
 
-        self.h_erm = self.mt.get_h_erm(self.Z_m)
+        self.h_erm = self.mt.get_erm(self.Z_m)
         self.big_delta = self._get_big_delta(self.h_erm)
 
     def _update_P_m(self):

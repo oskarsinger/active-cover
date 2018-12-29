@@ -4,6 +4,8 @@ from whitehorses.loaders.supervised import (
     BilinearLogisticRegressionLoader
 )
 
+from activecover.batch import BatchActiveCover
+
 
 # TODO: initialize model
 # TODO: initialize non-active version
@@ -34,3 +36,12 @@ class BatchActiveCoverLogisticRegressionTester:
             self.loader = LogisticRegressionGaussianLoader(
                 X_loader
             )
+
+        self.bac = BatchActiveCover(
+            model_trainer,
+            tolerance,
+            c1, c2, c3,
+            delta,
+            gamma,
+            alpha, beta, xi
+        )
