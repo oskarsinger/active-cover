@@ -22,6 +22,7 @@ class ModelTrainer:
 
     def get_erm(Z):
         
+        # TODO: will need to implement weighted logistic etc for this to work
         pass
 
 
