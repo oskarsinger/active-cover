@@ -8,11 +8,11 @@ class ModelTrainer:
 
     def __init__(self,
         model,
-        optimizer
+        get_optimizer
     ):
 
         self.model = model
-        self.optimizer = optimizer
+        self.get_optimizer = get_optimizer
 
 
     def get_prediction(h, x):
@@ -22,22 +22,38 @@ class ModelTrainer:
 
     def get_erm(Z):
         
-        # TODO: will need to implement weighted logistic etc for this to work
-        pass
+        get_objective = lambda params: self.model.get_objective(
+            Z,
+            params
+        )
+        get_gradient = lambda params: self.model.get_gradient(
+            Z,
+            params
+        )
+        get_projected = lambda params: self.model.get_projected(
+            Z, params
+        )
+        optimizer = self.get_optimizer(
+            self.model.get_parameter_shape(),
+            get_objective,
+            get_gradient,
+            get_projected
+        )
+
+        optimizer.run()
+
+        return optimizer.get_parameters()
 
 
     def get_error(h, Z):
 
-        X = np.array(
-            [x_t for (x_t, _, _) in Z]
-        )
         y = np.array(
-            [y_t for (_, y_t, _) in Z]
+            [z[-2] for z in Z]
         )
         p_inv = np.array(
-            [p_inv_t for (_, _, p_inv_t) in Z]
+            [z[-1] for z in Z]
         )
-        y_hat = self.model.get_prediction(X, h)
+        y_hat = self.model.get_prediction(Z, h)
         incorrect = 1 - np.abs(y - y_hat)
 
         return np.mean(incorrect * p_inv)
