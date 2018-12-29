@@ -110,11 +110,9 @@ class BatchActiveCover:
 
     def _update_P_m(self):
 
-        samples = [x for (x, _, _) in self.S]
-
         dc = DistributionComputer(
             model_trainer,
-            samples,
+            self.Z_m,
             self._is_in_disagreement_region,
             self.tolerance,
             self.m,

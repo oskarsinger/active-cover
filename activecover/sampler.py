@@ -36,9 +36,8 @@ class DistributionComputer:
         self.big_delta = big_delta,
         self.h_erm = h
 
-        self.samples = {i : x for (x, _, _) in self.data}
         self.erm_preds = [self.mt.get_prediction(x, self.h_erm)
-                          for x in self.samples]
+                          for (x, _, _) in self.data]
 
         self._set_P_min() 
         self._set_I()
@@ -90,7 +89,7 @@ class DistributionComputer:
 
     def _get_expectation(self, get_val):
 
-        vals = [get_val(x) for x in self.samples.values()]
+        vals = [get_val(x) for (x, _, _) in self.data]
 
         return sum(vals) / len(vals)
 
