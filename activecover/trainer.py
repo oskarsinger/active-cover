@@ -1,8 +1,5 @@
 import numpy as np
 
-from models.regression import BinaryL2RegularizedBilinearLogisticRegressionModel as BL2RBilinearLRM
-from models.regression import BinaryL2RegularizedLogisticRegressionMOdel as BL2RLRM
-
 
 class ModelTrainer:
 

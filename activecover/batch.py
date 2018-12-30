@@ -2,6 +2,7 @@ import numpy as np
 
 class BatchActiveCover:
 
+
     # TODO: put nice defaults here
     def __init__(self,
         model_trainer,
@@ -33,14 +34,11 @@ class BatchActiveCover:
         # Which data indexes called queries
         self.oracle_calls = []
 
-        # Current labeled dataset
+        # Labeled data up to most recent epoch
         self.Z_m = []
 
-        # Current unlabeled dataset
+        # Current epoch dataset
         self.S = []
-
-        # Current hypothesis subset
-        self.A_m = None
 
         # Indicates whether waiting on oracle label
         self.waiting = False
@@ -56,9 +54,11 @@ class BatchActiveCover:
 
         self._set_epsilon_and_tau()
 
+
     def get_parameters(self):
 
         return self.mt.get_parameters()
+
 
     def get_label(self, x):
 
@@ -88,11 +88,13 @@ class BatchActiveCover:
 
         return label
 
+
     def set_label(self, y):
 
         (x, _, p_inv) = self.S[-1]
         self.S[-1] = (x, y, p_inv)
         self.waiting = False 
+
 
     def _do_epoch_update(self):
 
@@ -103,10 +105,12 @@ class BatchActiveCover:
         self.m += 1
         self.S = []
 
+
     def _update_h_erm(self):
 
         self.h_erm = self.mt.get_erm(self.Z_m)
         self.big_delta = self._get_big_delta(self.h_erm)
+
 
     def _update_P_m(self):
 
@@ -130,6 +134,7 @@ class BatchActiveCover:
 
         self.P_m = dc.get_P()
 
+
     def _get_big_delta(self):
 
         error = self.mt.get_error(self.h_erm, self.Z_m)
@@ -138,9 +143,11 @@ class BatchActiveCover:
 
         return self.cs[0] * sqrt_term + self.cs[1] * log_term
 
+
     def _is_in_disagreement_region(self, x):
         # TODO: look in App. F of Online Importance Weight Aware Updates to learn about single-constraint optimization with unconstrained oracle to check for disagreement region membership
         threshold = self.delta * self.big_delta
+
 
     def _set_epsilon_and_tau(self):
 

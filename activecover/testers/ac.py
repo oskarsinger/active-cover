@@ -5,6 +5,7 @@ from whitehorses.loaders.supervised import (
 )
 
 from activecover.batch import BatchActiveCover
+from activecover.trainer  import ModelTrainer
 
 
 # TODO: initialize model
@@ -30,13 +31,14 @@ class BatchActiveCoverLogisticRegressionTester:
 
         if self.bilinear:
             self.loader = BilinearLogisticRegressionLoader(
-                X_loader, X_loader
+                self.X_loader, self.X_loader
             )
         else:
             self.loader = LogisticRegressionGaussianLoader(
-                X_loader
+                self.X_loader
             )
 
+        self.trainer = 
         self.bac = BatchActiveCover(
             model_trainer,
             tolerance,
@@ -45,3 +47,6 @@ class BatchActiveCoverLogisticRegressionTester:
             gamma,
             alpha, beta, xi
         )
+
+    def run(self):
+        pass

@@ -1,6 +1,6 @@
 import numpy as np
 
-from .hypotheses import BinaryHypothesisDualVariableContainer as BHDVC
+from activecover import BinaryHypothesisDualVariableContainer as BHDVC
 from fitterhappier.zeroorder import TwoPointBanditOptimizer as TPBO
 
 class DistributionComputer:
